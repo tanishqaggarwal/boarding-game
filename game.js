@@ -142,15 +142,19 @@ function setup() {
     for(const seat of seats_list) {
         app.stage.addChild(seat.sprite);
         seat.sprite.click = function() {
-            c.walkPath(
-                person,
-                seat.path_to_seat_from(person),
-                seat.walk_frames,
-                "linear",
-                false,
-                false,
-                0
-            );
+            if (!person.is_assigned_seat && !seat.is_occupied) {
+                c.walkPath(
+                    person,
+                    seat.path_to_seat_from(person),
+                    seat.walk_frames,
+                    "linear",
+                    false,
+                    false,
+                    0
+                );
+                person.is_assigned_seat = true;
+                seat.is_occupied = true;
+            }
         }
     }
 
