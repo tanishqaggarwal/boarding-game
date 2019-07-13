@@ -143,14 +143,13 @@ function setup() {
         app.stage.addChild(seat.sprite);
         seat.sprite.click = function() {
             if (!person.is_assigned_seat && !seat.is_occupied) {
-                c.walkPath(
+                var tween = c.walkPath(
                     person,
                     seat.path_to_seat_from(person),
                     seat.walk_frames,
-                    "linear",
-                    false,
-                    false,
-                    0
+                    function() {
+                        console.log("done");
+                    }
                 );
                 person.is_assigned_seat = true;
                 seat.is_occupied = true;

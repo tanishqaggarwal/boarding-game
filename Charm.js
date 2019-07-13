@@ -617,21 +617,13 @@ var Charm = (function () {
             originalPathArray) //Delay, in milliseconds, between sections
         {
             var totalFrames = arguments.length <= 2 || arguments[2] === undefined ? 300 : arguments[2];
-            var type = arguments.length <= 3 || arguments[3] === undefined ? "smoothstep" : arguments[3];
-            var loop = arguments.length <= 4 || arguments[4] === undefined ? false : arguments[4];
-
+            var onComplete = arguments[3];
             var _this6 = this;
-
-            var yoyo = arguments.length <= 5 || arguments[5] === undefined ? false : arguments[5];
-            var delayBetweenSections = arguments.length <= 6 || arguments[6] === undefined ? 0 : arguments[6];
+            var delayBetweenSections = 0;
 
             //Clone the path array so that any possible references to sprite
             //properties are converted into ordinary numbers
             var pathArray = JSON.parse(JSON.stringify(originalPathArray));
-
-            //Figure out the duration, in frames, of each path section by
-            //dividing the `totalFrames` by the length of the `pathArray`
-            var frames = totalFrames / pathArray.length;
 
             //Set the current point to 0, which will be the first waypoint
             var currentPoint = 0;
@@ -639,6 +631,17 @@ var Charm = (function () {
             //The `makePath` function creates a single tween between two points and
             //then schedules the next path to be made after it
             var makePath = function makePath(currentPoint) {
+                //Figure out the duration, in frames, of this path section by
+                //proportionally assigning frame length based on section length.
+                var total_path_length = 0;
+                function get_path_length(point) {
+                    return Math.sqrt(Math.pow(pathArray[point + 1][0] - pathArray[point][0], 2) + Math.pow(pathArray[point + 1][1] - pathArray[point][1], 2))
+                }
+                for(var i = 0; i < pathArray.length - 1; i++) {
+                    total_path_length += get_path_length(i);
+                }
+                var current_path_length = get_path_length(currentPoint);
+                var frames = totalFrames * (current_path_length / total_path_length);
 
                 //Use the `makeTween` function to tween the sprite's
                 //x and y position
@@ -646,10 +649,10 @@ var Charm = (function () {
 
                     //Create the x axis tween between the first x value in the
                     //current point and the x value in the following point
-                    [sprite, "x", pathArray[currentPoint][0], pathArray[currentPoint + 1][0], frames, type],
+                    [sprite, "x", pathArray[currentPoint][0], pathArray[currentPoint + 1][0], frames, "linear"],
 
                     //Create the y axis tween in the same way
-                    [sprite, "y", pathArray[currentPoint][1], pathArray[currentPoint + 1][1], frames, type]]);
+                    [sprite, "y", pathArray[currentPoint][1], pathArray[currentPoint + 1][1], frames, "linear"]]);
 
                 //When the tween is complete, advance the `currentPoint` by one.
                 //Add an optional delay between path segments, and then make the
@@ -667,33 +670,9 @@ var Charm = (function () {
                         });
                     }
 
-                    //If we've reached the end of the path, optionally
-                    //loop and yoyo it
+                    //If we've reached the end of the path, do the on-complete handler
                     else {
-
-                        //Reverse the path if `loop` is `true`
-                        if (loop) {
-
-                            //Reverse the array if `yoyo` is `true`
-                            if (yoyo) pathArray.reverse();
-
-                            //Optionally wait before restarting
-                            _this6.wait(delayBetweenSections).then(function () {
-
-                                //Reset the `currentPoint` to 0 so that we can
-                                //restart at the first point
-                                currentPoint = 0;
-
-                                //Set the sprite to the first point
-                                sprite.x = pathArray[0][0];
-                                sprite.y = pathArray[0][1];
-
-                                //Make the first new path
-                                tween = makePath(currentPoint);
-
-                                //... and so it continues!
-                            });
-                        }
+                        onComplete();
                     }
                 };
 
