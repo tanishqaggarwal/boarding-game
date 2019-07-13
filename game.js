@@ -142,24 +142,17 @@ function setup() {
     for(const seat of seats_list) {
         app.stage.addChild(seat.sprite);
         seat.sprite.click = function() {
-            console.log("hello from: " + seat.number);
+            c.walkPath(
+                person,
+                seat.path_to_seat_from(person),
+                seat.walk_frames,
+                "linear",
+                false,
+                false,
+                0
+            );
         }
     }
-
-    /*
-    * Generate all people sprites TODO
-    */
-
-    var random_seat = seats_list[Math.floor(Math.random() * seats_list.length)];
-    c.walkPath(
-        person,
-        random_seat.path_to_seat_from(person),
-        random_seat.walk_frames,
-        "linear",
-        false,
-        false,
-        0
-    ); 
 
     app.ticker.add(delta => gameLoop(delta));
 }
