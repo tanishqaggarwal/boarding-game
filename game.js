@@ -47,7 +47,7 @@ class Seat {
         this.walk_frames = (600 + Math.abs(this.x - 275) + Math.abs(this.y - 288)) / 12;
 
         // Game data
-        this.occupied = false;
+        this.taken = false;
     }
 
     is_within_clickable_area(x, y) {
@@ -60,6 +60,7 @@ class Seat {
     path_to_seat_from(current_position) {
         var path_from_person_to_gate = [
             [current_position.x, current_position.y],
+            [342, 645],
         ]
         var path_from_gate_to_seat = [
             [210, 645],
@@ -94,17 +95,18 @@ function setup() {
     app.stage.addChild(bg);
 
     /*
-    * Generate set of people sprites
+    * Generate set of people sprites.
     */
-    for(var i = 0; i < 10; i++) {
-        let person = new PIXI.Sprite(PIXI.loader.resources["first_class.png"].texture);
+    for(var i = 0; i < 196; i++) {
+        var img = i < 24 ? "first_class.png" : "normal_person.png";
+        let person = new PIXI.Sprite(PIXI.loader.resources[img].texture);
+        if (i < 24) person.first_class = true;
         person.anchor.x = 0.5;
         person.anchor.y = 0.5;
-        person.position.x = 380 + i * 17;
-        person.position.y = 645;
+        person.position.x = Math.random() * 580 + 380;
+        person.position.y = Math.random() * 200 + 600;
         person.scale.x = 0.7;
         person.scale.y = 0.7;
-        person.is_first_class = true;
         persons_list.push(person);
         app.stage.addChild(person);
     }
@@ -165,11 +167,8 @@ function setup() {
         seat.sprite.click = function() {
             // If there are no more people to seat, don't try
             if (!next_person) return;
-            // If seat is already occupied by another person, don't 
-            else if (seat.is_occupied) return;
-            // If the next person boarding is already moving to a seat, don't re-assign them a seat
             else if (next_person.is_assigned_seat) return;
-            // Otherwise, start the animation of moving the person.
+            else if (seat.taken) return;
             else {
                 next_person.is_assigned_seat = true;
                 c.walkPath(
@@ -177,7 +176,7 @@ function setup() {
                     seat.path_to_seat_from(next_person),
                     seat.walk_frames
                 );
-                seat.is_occupied = true;
+                seat.taken = true;
                 next_person = persons_list.pop();
             }
         }
