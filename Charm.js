@@ -617,7 +617,6 @@ var Charm = (function () {
             originalPathArray) //Delay, in milliseconds, between sections
         {
             var totalFrames = arguments.length <= 2 || arguments[2] === undefined ? 300 : arguments[2];
-            var onComplete = arguments[3];
             var _this6 = this;
             var delayBetweenSections = 0;
 
@@ -670,10 +669,7 @@ var Charm = (function () {
                         });
                     }
 
-                    //If we've reached the end of the path, do the on-complete handler
-                    else {
-                        onComplete();
-                    }
+                    // Otherwise, the end of the path has been reached, and there's nothing left to do.
                 };
 
                 //Return the path tween to the main function

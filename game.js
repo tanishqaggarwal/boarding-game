@@ -78,10 +78,8 @@ class Seat {
 seats_list = []
 // List of persons
 persons_list = []
-// Pointer to next person that will be boarding
+// Pointer to next person that will be boarding (or is currently boarding)
 next_person = {}
-// Tracks if a person is currently moving on-screen
-var is_currently_a_person_moving = false;
 
 function setup() {
     //Create the background
@@ -106,6 +104,7 @@ function setup() {
         person.position.y = 645;
         person.scale.x = 0.7;
         person.scale.y = 0.7;
+        person.is_first_class = true;
         persons_list.push(person);
         app.stage.addChild(person);
     }
@@ -164,20 +163,22 @@ function setup() {
     for(const seat of seats_list) {
         app.stage.addChild(seat.sprite);
         seat.sprite.click = function() {
+            // If there are no more people to seat, don't try
             if (!next_person) return;
-            else if (!next_person.is_assigned_seat && !seat.is_occupied && !is_currently_a_person_moving) {
-                is_currently_a_person_moving = true;
+            // If seat is already occupied by another person, don't 
+            else if (seat.is_occupied) return;
+            // If the next person boarding is already moving to a seat, don't re-assign them a seat
+            else if (next_person.is_assigned_seat) return;
+            // Otherwise, start the animation of moving the person.
+            else {
+                next_person.is_assigned_seat = true;
                 c.walkPath(
                     next_person,
                     seat.path_to_seat_from(next_person),
-                    seat.walk_frames,
-                    function on_finish_seating() {
-                        is_currently_a_person_moving = false;
-                        next_person = persons_list.pop();
-                    }
+                    seat.walk_frames
                 );
-                next_person.is_assigned_seat = true;
                 seat.is_occupied = true;
+                next_person = persons_list.pop();
             }
         }
     }
