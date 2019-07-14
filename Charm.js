@@ -616,7 +616,8 @@ var Charm = (function () {
         value: function walkPath(sprite, //The sprite
             originalPathArray) //Delay, in milliseconds, between sections
         {
-            var totalFrames = arguments.length <= 2 || arguments[2] === undefined ? 300 : arguments[2];
+            var totalFrames = arguments[2];
+            var onComplete = arguments[3];
             var _this6 = this;
             var delayBetweenSections = 0;
 
@@ -669,7 +670,10 @@ var Charm = (function () {
                         });
                     }
 
-                    // Otherwise, the end of the path has been reached, and there's nothing left to do.
+                    // Otherwise, the end of the path has been reached, run the onComplete() handler
+                    else {
+                        onComplete();
+                    }
                 };
 
                 //Return the path tween to the main function

@@ -97,8 +97,8 @@ function setup() {
     /*
     * Generate set of people sprites.
     */
-    for(var i = 0; i < 196; i++) {
-        var img = i < 24 ? "first_class.png" : "normal_person.png";
+    for(var i = 0; i < 10; i++) {
+        var img = i < 2 ? "first_class.png" : "normal_person.png";
         let person = new PIXI.Sprite(PIXI.loader.resources[img].texture);
         if (i < 24) person.first_class = true;
         person.anchor.x = 0.5;
@@ -161,20 +161,38 @@ function setup() {
         seats_list.push(seat);
     }
 
+    // Create timer text and timer object
+    let time_header = new PIXI.Text("Boarding Time", {fontFamily: "Arial", fontSize: 36});
+    time_header.position.x = 750;
+    time_header.position.y = 100;
+    let time_value = new PIXI.Text("", { fontFamily: "Arial", fontSize: 36, fill:"red" });
+    time_value.position.x = 750;
+    time_value.position.y = 150;
+    let stopwatch = new Stopwatch(time_value);
+    app.stage.addChild(time_header);
+    app.stage.addChild(time_value);
+
     // Generate callback functions for clicks on seats
     for(const seat of seats_list) {
         app.stage.addChild(seat.sprite);
         seat.sprite.click = function() {
-            // If there are no more people to seat, don't try
+            // If there are no more people to seat
             if (!next_person) return;
             else if (next_person.is_assigned_seat) return;
             else if (seat.taken) return;
             else {
+                stopwatch.start();
                 next_person.is_assigned_seat = true;
+                
+                var stop_timer = false;
+                if (persons_list.length == 0) stop_timer = true;
                 c.walkPath(
                     next_person,
                     seat.path_to_seat_from(next_person),
-                    seat.walk_frames
+                    seat.walk_frames,
+                    function onComplete() {
+                        if (stop_timer) stopwatch.stop();
+                    }
                 );
                 seat.taken = true;
                 next_person = persons_list.pop();
