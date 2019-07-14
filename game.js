@@ -44,7 +44,7 @@ class Seat {
 
         // Number of frames for the walking allowed animation. Based
         // on distance from the front of the plane
-        this.walk_frames = (600 + Math.abs(this.x - 275) + Math.abs(this.y - 288)) / 4;
+        this.walk_frames = (600 + Math.abs(this.x - 275) + Math.abs(this.y - 288)) / 12;
 
         // Game data
         this.occupied = false;
@@ -58,15 +58,30 @@ class Seat {
     }
 
     path_to_seat_from(current_position) {
-        return [
+        var path_from_person_to_gate = [
             [current_position.x, current_position.y],
+        ]
+        var path_from_gate_to_seat = [
             [210, 645],
             [210, 288],
             [this.x, 288],
             [this.x, this.y],
         ]
+        return path_from_person_to_gate.concat(path_from_gate_to_seat);
     }
 }
+
+/**
+ * Game state variables
+ */
+// List of seat objects
+seats_list = []
+// List of persons
+persons_list = []
+// Pointer to next person that will be boarding
+next_person = {}
+// Tracks if a person is currently moving on-screen
+var is_currently_a_person_moving = false;
 
 function setup() {
     //Create the background
@@ -80,20 +95,26 @@ function setup() {
     //Add the background to the stage
     app.stage.addChild(bg);
 
-    let person = new PIXI.Sprite(PIXI.loader.resources["first_class.png"].texture);
-    person.anchor.x = 0.5;
-    person.anchor.y = 0.5;
-    person.position.x = 340;
-    person.position.y = 650;
-    person.scale.x = 0.7;
-    person.scale.y = 0.7;
-    app.stage.addChild(person);
+    /*
+    * Generate set of people sprites
+    */
+    for(var i = 0; i < 10; i++) {
+        let person = new PIXI.Sprite(PIXI.loader.resources["first_class.png"].texture);
+        person.anchor.x = 0.5;
+        person.anchor.y = 0.5;
+        person.position.x = 380 + i * 17;
+        person.position.y = 645;
+        person.scale.x = 0.7;
+        person.scale.y = 0.7;
+        persons_list.push(person);
+        app.stage.addChild(person);
+    }
+    persons_list.reverse();
+    next_person = persons_list.pop();
 
     /*
     * Generate set of available seats
     */
-    seats_list = []
-
     for (var i = 0; i < 16; i++) {
         // D1-F16
         for (var j = 0; j < 3; j++) {
@@ -139,24 +160,29 @@ function setup() {
         seats_list.push(seat);
     }
 
+    // Generate callback functions for clicks on seats
     for(const seat of seats_list) {
         app.stage.addChild(seat.sprite);
         seat.sprite.click = function() {
-            if (!person.is_assigned_seat && !seat.is_occupied) {
-                var tween = c.walkPath(
-                    person,
-                    seat.path_to_seat_from(person),
+            if (!next_person) return;
+            else if (!next_person.is_assigned_seat && !seat.is_occupied && !is_currently_a_person_moving) {
+                is_currently_a_person_moving = true;
+                c.walkPath(
+                    next_person,
+                    seat.path_to_seat_from(next_person),
                     seat.walk_frames,
-                    function() {
-                        console.log("done");
+                    function on_finish_seating() {
+                        is_currently_a_person_moving = false;
+                        next_person = persons_list.pop();
                     }
                 );
-                person.is_assigned_seat = true;
+                next_person.is_assigned_seat = true;
                 seat.is_occupied = true;
             }
         }
     }
 
+    // Start game animation
     app.ticker.add(delta => gameLoop(delta));
 }
 
