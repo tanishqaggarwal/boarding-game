@@ -172,7 +172,7 @@ function setup() {
     * Generate set of people sprites.
     */
     for(var i = 0; i < 50; i++) {
-        var img = i < 24 ? "first_class.png" : "normal_person.png";
+        var img = i < 10 ? "first_class.png" : "normal_person.png";
         let person = new PIXI.Sprite(PIXI.loader.resources[img].texture);
         if (i < 24) person.first_class = true;
         person.anchor.x = 0.5;
