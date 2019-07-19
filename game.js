@@ -10,6 +10,7 @@ document.body.appendChild(app.view);
 //load images and run the `setup` function when it's done
 PIXI.loader
     .add("bg.png")
+    .add("bg2.png")
     .add("first_class.png")
     .add("normal_person.png")
     .load(setup);
@@ -32,7 +33,8 @@ class Seat {
 
         // Making the seat clickable.
         var graphics = new PIXI.Graphics();
-        graphics.drawRect(x - 6, y - 5, 12, 12);
+        //graphics.beginFill(0x0000ff);
+        graphics.drawRect(x - 12, y - 8, 23, 16);
         var texture = graphics.generateTexture();
         this.sprite = new PIXI.Sprite(texture);
         this.sprite.interactive = true;
@@ -60,62 +62,20 @@ class Seat {
     path_to_seat_from(current_position) {
         var path_from_person_to_gate = [
             [current_position.x, current_position.y],
-            [342, 645],
+            [420, 700],
         ]
         var path_from_gate_to_seat = [
-            [210, 645],
-            [210, 288],
-            [this.x, 288],
+            [240, 700],
+            [240, 130],
+            [this.x, 130],
             [this.x, this.y],
         ]
         return path_from_person_to_gate.concat(path_from_gate_to_seat);
     }
 }
 
-/**
- * Game state variables
- */
-// List of seat objects
-seats_list = []
-// List of persons
-persons_list = []
-// Pointer to next person that will be boarding (or is currently boarding)
-next_person = {}
-
-function setup() {
-    //Create the background
-    let bg = new PIXI.Sprite(PIXI.loader.resources["bg.png"].texture);
-    bg.anchor.x = 0;
-    bg.anchor.y = 0;
-    bg.position.x = 0;
-    bg.position.y = 0;
-    bg.scale.x = 0.7;
-    bg.scale.y = 0.7;
-    //Add the background to the stage
-    app.stage.addChild(bg);
-
-    /*
-    * Generate set of people sprites.
-    */
-    for(var i = 0; i < 196; i++) {
-        var img = i < 24 ? "first_class.png" : "normal_person.png";
-        let person = new PIXI.Sprite(PIXI.loader.resources[img].texture);
-        if (i < 24) person.first_class = true;
-        person.anchor.x = 0.5;
-        person.anchor.y = 0.5;
-        person.position.x = Math.random() * 580 + 380;
-        person.position.y = Math.random() * 200 + 600;
-        person.scale.x = 0.7;
-        person.scale.y = 0.7;
-        persons_list.push(person);
-        app.stage.addChild(person);
-    }
-    persons_list.reverse();
-    next_person = persons_list.pop();
-
-    /*
-    * Generate set of available seats
-    */
+function generate_seats_196() {
+    var seats_list = [];
     for (var i = 0; i < 16; i++) {
         // D1-F16
         for (var j = 0; j < 3; j++) {
@@ -160,14 +120,85 @@ function setup() {
         var seat = new Seat(17, String.fromCharCode("C".charCodeAt(0) - i), x, y);
         seats_list.push(seat);
     }
+    return seats_list;
+}
+
+function generate_seats_50() {
+    var seats_list = [];
+    for (var i = 0; i < 12; i++) {
+        // C1-D12
+        for (var j = 0; j < 2; j++) {
+            var x = 293 + i * 34.35;
+            var y = 82.4 + j * 20;
+            var seat = new Seat(1 + i, String.fromCharCode("D".charCodeAt(0) - j), x, y);
+            seats_list.push(seat);
+        }
+    }
+    for (var i = 0; i < 13; i++) {
+        // A1-B14
+        for (var j = 0; j < 2; j++) {
+            var x = 293 + i * 34.35;
+            var y = 147 + j * 20;
+            var seat = new Seat(1 + i, String.fromCharCode("B".charCodeAt(0) - j), x, y);
+            seats_list.push(seat);
+        }
+    }
+    return seats_list;
+}
+
+/**
+ * Game state variables
+ */
+// List of seat objects
+seats_list = []
+// List of persons
+persons_list = []
+// Pointer to next person that will be boarding (or is currently boarding)
+next_person = {}
+
+function setup() {
+    //Create the background
+    let bg = new PIXI.Sprite(PIXI.loader.resources["bg2.png"].texture);
+    bg.anchor.x = 0;
+    bg.anchor.y = 0;
+    bg.position.x = 0;
+    bg.position.y = 0;
+    bg.scale.x = 0.7;
+    bg.scale.y = 0.7;
+    //Add the background to the stage
+    app.stage.addChild(bg);
+
+    /*
+    * Generate set of people sprites.
+    */
+    for(var i = 0; i < 50; i++) {
+        var img = i < 24 ? "first_class.png" : "normal_person.png";
+        let person = new PIXI.Sprite(PIXI.loader.resources[img].texture);
+        if (i < 24) person.first_class = true;
+        person.anchor.x = 0.5;
+        person.anchor.y = 0.5;
+        person.position.x = Math.random() * 460 + 420;
+        person.position.y = Math.random() * 100 + 680;
+        person.scale.x = 0.7;
+        person.scale.y = 0.7;
+        persons_list.push(person);
+        app.stage.addChild(person);
+    }
+    persons_list.reverse();
+    next_person = persons_list.pop();
+
+    /*
+    * Generate set of available seats
+    */
+    seats_list = generate_seats_50();
 
     // Create timer text and timer object
     let time_header = new PIXI.Text("Boarding Time", {fontFamily: "Arial", fontSize: 36});
     time_header.position.x = 750;
-    time_header.position.y = 100;
+    time_header.position.y = 300;
     let time_value = new PIXI.Text("", { fontFamily: "Arial", fontSize: 36, fill:"red" });
     time_value.position.x = 750;
-    time_value.position.y = 150;
+    time_value.position.y = 350;
     let stopwatch = new Stopwatch(time_value);
     app.stage.addChild(time_header);
     app.stage.addChild(time_value);
