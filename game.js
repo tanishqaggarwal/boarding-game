@@ -66,8 +66,8 @@ class Seat {
         ]
         var path_from_gate_to_seat = [
             [240, 700],
-            [240, 130],
-            [this.x, 130],
+            [240, 126],
+            [this.x, 126],
             [this.x, this.y],
         ]
         return path_from_person_to_gate.concat(path_from_gate_to_seat);
